@@ -56,6 +56,12 @@ bool EnemyTooCloseForAutoShotTrigger::IsActive()
     if (!target)
         return false;
 
+    // A hunter with no ammo cannot auto-shot, so retreating to gain distance is
+    // pointless and just causes endless backpedaling. In that case don't trigger
+    // the reposition/flee; let the melee fallback take over instead.
+    if (bot->getClass() == CLASS_HUNTER && AI_VALUE2(uint32, "item count", "ammo") == 0)
+        return false;
+
     // hunter move away after casting immolation/explosive trap
     bool trapToCast = bot->getClass() == CLASS_HUNTER;
     uint32 spellId = AI_VALUE2(uint32, "spell id", "immolation trap");
