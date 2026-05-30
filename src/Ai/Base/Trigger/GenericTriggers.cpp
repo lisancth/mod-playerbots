@@ -242,7 +242,20 @@ bool AoeTrigger::IsActive()
             attackers_count++;
         }
     }
-    return attackers_count >= amount;
+    if (attackers_count >= amount)
+        return true;
+
+    // Also allow AoE skills on a single low-HP target (< 30%) to burst it down
+    // faster, reducing the time the bot stays in melee and the risk of dying.
+    if (current_target->GetHealthPct() < 30.0f)
+        return true;
+
+    // Also allow AoE skills when the bot itself is low on health (< 70%), to
+    // maximize burst and kill the target before the bot dies.
+    if (bot->GetHealthPct() < 70.0f)
+        return true;
+
+    return false;
 }
 
 bool NoFoodTrigger::IsActive()
