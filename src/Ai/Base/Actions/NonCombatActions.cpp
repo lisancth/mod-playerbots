@@ -49,8 +49,12 @@ bool DrinkAction::Execute(Event event)
 
 bool DrinkAction::isUseful()
 {
+    // Only rest/drink once mana is actually low, so grinding bots don't sit
+    // down after every kill (was: any mana below 100%). With the food cheat
+    // enabled the bot regenerates instantly when it does sit, so a low
+    // threshold keeps it fighting until mana is worth restoring.
     return UseItemAction::isUseful() && AI_VALUE2(bool, "has mana", "self target") &&
-           AI_VALUE2(uint8, "mana", "self target") < 100;
+           AI_VALUE2(uint8, "mana", "self target") < sPlayerbotAIConfig.lowMana;
 }
 
 bool DrinkAction::isPossible()
@@ -100,7 +104,10 @@ bool EatAction::Execute(Event event)
     return UseItemAction::Execute(event);
 }
 
-bool EatAction::isUseful() { return UseItemAction::isUseful() && AI_VALUE2(uint8, "health", "self target") < 100; }
+// Eat (out of combat) when health is below 75%, so a melee grinder tops up
+// between pulls instead of chaining mobs at low health and dying. With the
+// food cheat enabled, sitting restores health instantly.
+bool EatAction::isUseful() { return UseItemAction::isUseful() && AI_VALUE2(uint8, "health", "self target") < 75; }
 
 bool EatAction::isPossible()
 {
