@@ -92,7 +92,10 @@ Unit* GrindTargetValue::FindTargetForGrinding(uint32 assistCount)
             continue;
         }
 
-        if (!bot->InBattleground() && (int)unit->GetLevel() - (int)bot->GetLevel() > 4 && !unit->GetGUID().IsPlayer())
+        // Skip mobs more than 2 levels above the bot when grinding, so an
+        // auto-grinder picks same-level/lower targets instead of dangerous
+        // higher-level mobs (was > 4).
+        if (!bot->InBattleground() && (int)unit->GetLevel() - (int)bot->GetLevel() > 2 && !unit->GetGUID().IsPlayer())
             continue;
 
         if (Creature* creature = unit->ToCreature())
