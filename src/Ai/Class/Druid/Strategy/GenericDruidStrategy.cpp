@@ -21,6 +21,9 @@ public:
         creators["rebirth"] = &rebirth;
         creators["entangling roots on cc"] = &entangling_roots_on_cc;
         creators["innervate"] = &innervate;
+        creators["regrowth"] = &regrowth;
+        creators["healing touch"] = &healing_touch;
+        creators["rejuvenation"] = &rejuvenation;
     }
 
 private:
@@ -95,6 +98,31 @@ private:
                               /*A*/ { NextAction("mana potion") },
                               /*C*/ {});
     }
+
+    // 人形状态直接施法；猫/熊形时先切人形再施法（P=前置，C=后续）
+    static ActionNode* regrowth([[maybe_unused]] PlayerbotAI* botAI)
+    {
+        return new ActionNode("regrowth",
+                              /*P*/ { NextAction("caster form") },
+                              /*A*/ { NextAction("healing touch") },
+                              /*C*/ {});
+    }
+
+    static ActionNode* healing_touch([[maybe_unused]] PlayerbotAI* botAI)
+    {
+        return new ActionNode("healing touch",
+                              /*P*/ { NextAction("caster form") },
+                              /*A*/ {},
+                              /*C*/ {});
+    }
+
+    static ActionNode* rejuvenation([[maybe_unused]] PlayerbotAI* botAI)
+    {
+        return new ActionNode("rejuvenation",
+                              /*P*/ { NextAction("caster form") },
+                              /*A*/ {},
+                              /*C*/ {});
+    }
 };
 
 GenericDruidStrategy::GenericDruidStrategy(PlayerbotAI* botAI) : CombatStrategy(botAI)
@@ -108,6 +136,15 @@ void GenericDruidStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
 
     triggers.push_back(
         new TriggerNode("low health", { NextAction("barkskin", ACTION_HIGH + 7) }));
+
+    // 血量低：自愈（人形可直接施法；猫/熊形会先切人形）
+    // critical health(25%)：regrowth（直接治疗）或 healing touch
+    triggers.push_back(new TriggerNode("critical health",
+        { NextAction("regrowth", ACTION_CRITICAL_HEAL + 3),
+          NextAction("healing touch", ACTION_CRITICAL_HEAL + 2) }));
+    // low health(45%)：回春（HoT，先挂上持续回血）
+    triggers.push_back(new TriggerNode("low health",
+        { NextAction("rejuvenation", ACTION_MEDIUM_HEAL + 2) }));
 
     triggers.push_back(new TriggerNode("combat party member dead",
                                        { NextAction("rebirth", ACTION_HIGH + 9) }));

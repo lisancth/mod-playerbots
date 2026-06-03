@@ -50,7 +50,9 @@ bool TellCastFailedAction::Execute(Event event)
             out << "cannot cast";
     }
 
-    if (spellInfo->CalcCastTime() >= 2000)
+    // 只在有真实玩家主人在线且法术施法时间>=2秒时才报告错误
+    // 避免挂机找怪移动时产生大量噪音消息
+    if (spellInfo->CalcCastTime() >= 2000 && botAI->HasRealPlayerMaster())
         botAI->TellError(out.str());
 
     return true;

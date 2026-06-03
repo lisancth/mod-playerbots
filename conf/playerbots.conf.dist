@@ -581,6 +581,58 @@ AiPlayerbot.AutoGearScoreLimit = 0
 # Default: food, taxi, and raid are enabled
 AiPlayerbot.BotCheats = "food,taxi,raid"
 
+###############################################################################
+# 背包满自动卖货 (Bag Full Auto Sell)
+#
+# BagFullSellThreshold
+#   背包使用率达到此百分比时触发自动卖货并寻路到最近商人 NPC
+#   Default: 90  (90% 满时触发)
+AiPlayerbot.BagFullSellThreshold = 90
+
+# SellGrayItems
+#   灰色（差）品质物品始终出售（强制）
+#   Default: 1
+AiPlayerbot.SellGrayItems = 1
+
+# SellWhiteItems
+#   白色（普通）品质物品是否出售
+#   Default: 1
+AiPlayerbot.SellWhiteItems = 1
+
+# SellGreenItems
+#   绿色（精良）品质物品是否出售（谨慎开启，可能卖掉有用装备）
+#   Default: 0
+AiPlayerbot.SellGreenItems = 0
+
+# SellBlueItems
+#   蓝色（稀有）品质物品是否出售（谨慎开启）
+#   Default: 0
+AiPlayerbot.SellBlueItems = 0
+#
+# 运行时可用 GM 命令修改（无需重启）：
+#   .playerbots sellmode gray          只卖灰色
+#   .playerbots sellmode white         卖灰+白
+#   .playerbots sellmode green         卖灰+白+绿
+#   .playerbots sellmode blue          卖灰+白+绿+蓝
+#   .playerbots sellmode status        查看当前设置
+###############################################################################
+
+###############################################################################
+# 挂机VIP权限等级控制
+#
+# AdvancedGrindMinSecLevel
+#   高级挂机功能所需最低账号安全等级
+#   高级功能：背包满自动找商人卖货、升级自动学技能、猎人自动买弹药
+#
+#   0 = 所有玩家（默认）
+#   1 = VIP玩家以上（SEC_MODERATOR）
+#   2 = GM以上（SEC_GAMEMASTER）
+#
+#   设置VIP：.account set gmlevel 账号名 1 -1
+#   Default: 0
+AiPlayerbot.AdvancedGrindMinSecLevel = 0
+###############################################################################
+
 # List of attunement quests (comma-separated list of quest IDs) that are automatically completed for all bots.
 # While mod-playerbots does not restore removed attunement requirements, other mods, such as mod-individual-progression, may do so.
 # This is meant to exclude bots from such requirements.
@@ -1022,14 +1074,14 @@ AiPlayerbot.OpenGoSpell = 6477
 # Strategies added here are applied to all randombots, in addition (or subtraction) to spec/role-based default strategies.
 # These rules are processed after the defaults.
 # Example: "+threat,-potions"
-AiPlayerbot.RandomBotCombatStrategies = ""
-AiPlayerbot.RandomBotNonCombatStrategies = ""
+AiPlayerbot.RandomBotCombatStrategies = "+flee"
+AiPlayerbot.RandomBotNonCombatStrategies = "+maintenance"
 
 # Additional altbot strategies
 # Strategies added here are applied to all altbots, in addition (or subtraction) to spec/role-based default strategies.
 # These rules are processed after the defaults.
-AiPlayerbot.CombatStrategies = ""
-AiPlayerbot.NonCombatStrategies = ""
+AiPlayerbot.CombatStrategies = "+flee"
+AiPlayerbot.NonCombatStrategies = "+maintenance"
 
 # Remove "healer dps" strategy on the maps specified below.
 # Default: 1 (enabled)

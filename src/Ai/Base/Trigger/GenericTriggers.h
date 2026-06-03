@@ -296,6 +296,32 @@ public:
     bool IsActive() override;
 };
 
+class BagFullSellTrigger : public Trigger
+{
+public:
+    BagFullSellTrigger(PlayerbotAI* botAI) : Trigger(botAI, "bag full sell") {}
+
+    bool IsActive() override;
+};
+
+// 多怪逃跑：攻击者 >2 且血量 <50% 时触发逃跑恢复
+class MultipleAttackersLowHealthTrigger : public Trigger
+{
+public:
+    MultipleAttackersLowHealthTrigger(PlayerbotAI* botAI) : Trigger(botAI, "multiple attackers low health") {}
+
+    bool IsActive() override;
+};
+
+// 远程职业低血量逃跑：血量 <40% 时转身跑
+class RangedLowHealthTrigger : public Trigger
+{
+public:
+    RangedLowHealthTrigger(PlayerbotAI* botAI) : Trigger(botAI, "ranged low health flee") {}
+
+    bool IsActive() override;
+};
+
 class LightAoeTrigger : public AoeTrigger
 {
 public:

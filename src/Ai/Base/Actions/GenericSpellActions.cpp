@@ -98,12 +98,16 @@ bool CastSpellAction::isUseful()
     if (!spellTarget->IsInWorld() || spellTarget->GetMapId() != bot->GetMapId())
         return false;
 
-    // float combatReach = bot->GetCombatReach() + target->GetCombatReach();
-    // if (!botAI->IsRanged(bot))
-    //     combatReach += 4.0f / 3.0f;
+    // 사거리 사전 체크 - 사거리 밖이면 아예 시전 시도하지 않음 (오류음 방지)
+    if (range > 0)
+    {
+        float combatReach = bot->GetCombatReach() + spellTarget->GetCombatReach();
+        float dist = bot->GetDistance(spellTarget);
+        if (dist > range + combatReach + 1.0f)
+            return false;
+    }
 
     return AI_VALUE2(bool, "spell cast useful", spell);
-           // && ServerFacade::instance().GetDistance2d(bot, target) <= (range + combatReach);
 }
 
 bool CastSpellAction::isPossible()

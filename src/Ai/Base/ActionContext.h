@@ -14,6 +14,7 @@
 #include "BattleGroundJoinAction.h"
 #include "BattleGroundTactics.h"
 #include "BuyAction.h"
+#include "SellAction.h"
 #include "CastCustomSpellAction.h"
 #include "ChangeStrategyAction.h"
 #include "ChangeTalentsAction.h"
@@ -133,6 +134,7 @@ public:
         creators["move from group"] = &ActionContext::move_from_group;
         creators["flee to group leader"] = &ActionContext::flee_to_group_leader;
         creators["runaway"] = &ActionContext::runaway;
+        creators["run from target"] = &ActionContext::run_from_target;
         creators["stay"] = &ActionContext::stay;
         creators["sit"] = &ActionContext::sit;
         creators["aggressive target"] = &ActionContext::aggressive_target;
@@ -250,6 +252,11 @@ public:
         creators["rpg end quest"] = &ActionContext::rpg_end_quest;
         creators["rpg buy"] = &ActionContext::rpg_buy;
         creators["rpg sell"] = &ActionContext::rpg_sell;
+        creators["bag full sell"] = &ActionContext::bag_full_sell;
+        creators["travel to vendor"] = &ActionContext::travel_to_vendor;
+        creators["return from vendor"] = &ActionContext::return_from_vendor;
+        creators["travel to ammo vendor"] = &ActionContext::travel_to_ammo_vendor;
+        creators["buy ammo"] = &ActionContext::buy_ammo;
         creators["rpg repair"] = &ActionContext::rpg_repair;
         creators["rpg train"] = &ActionContext::rpg_train;
         creators["rpg heal"] = &ActionContext::rpg_heal;
@@ -344,6 +351,7 @@ private:
     static Action* stay(PlayerbotAI* botAI) { return new StayAction(botAI); }
     static Action* sit(PlayerbotAI* botAI) { return new SitAction(botAI); }
     static Action* runaway(PlayerbotAI* botAI) { return new RunAwayAction(botAI); }
+    static Action* run_from_target(PlayerbotAI* botAI) { return new RunFromTargetAction(botAI); }
     static Action* follow(PlayerbotAI* botAI) { return new FollowAction(botAI); }
     static Action* move_from_group(PlayerbotAI* botAI) { return new MoveFromGroupAction(botAI); }
     static Action* flee_to_group_leader(PlayerbotAI* botAI) { return new FleeToGroupLeaderAction(botAI); }
@@ -455,6 +463,11 @@ private:
     static Action* rpg_end_quest(PlayerbotAI* botAI) { return new RpgEndQuestAction(botAI); }
     static Action* rpg_buy(PlayerbotAI* botAI) { return new RpgBuyAction(botAI); }
     static Action* rpg_sell(PlayerbotAI* botAI) { return new RpgSellAction(botAI); }
+    static Action* bag_full_sell(PlayerbotAI* botAI) { return new BagFullSellAction(botAI); }
+    static Action* travel_to_vendor(PlayerbotAI* botAI) { return new TravelToVendorAction(botAI); }
+    static Action* return_from_vendor(PlayerbotAI* botAI) { return new ReturnFromVendorAction(botAI); }
+    static Action* travel_to_ammo_vendor(PlayerbotAI* botAI) { return new TravelToAmmoVendorAction(botAI); }
+    static Action* buy_ammo(PlayerbotAI* botAI) { return new BuyAmmoAction(botAI); }
     static Action* rpg_repair(PlayerbotAI* botAI) { return new RpgRepairAction(botAI); }
     static Action* rpg_train(PlayerbotAI* botAI) { return new RpgTrainAction(botAI); }
     static Action* rpg_heal(PlayerbotAI* botAI) { return new RpgHealAction(botAI); }

@@ -56,16 +56,13 @@ void GenericHunterStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
 {
     CombatStrategy::InitTriggers(triggers);
 
-    // Mark/Ammo/Mana Triggers
-    // Out of ammo: try to restock/equip, and fall back to melee combat instead
-    // of standing still or uselessly kiting (kiting away can't shoot with no
-    // ammo). "mongoose bite" walks the full melee chain itself: mongoose bite
-    // -> raptor strike -> plain melee (casts a melee skill if mana allows,
-    // otherwise auto-attacks). Priority 40 is above disengage/flee (35/34) so
-    // an ammo-less hunter goes melee rather than backpedaling forever.
+    // 无弹药：先尝试装备背包里的弹药，如果没有就近战
+    // reach melee 优先级高于所有射程技能，确保先靠近再打近战
+    // mongoose bite 作为备选（当已在近战范围内时）
     triggers.push_back(new TriggerNode("no ammo", { NextAction("equip upgrades packet action", 41.0f),
-                                                    NextAction("reach melee", 40.0f),
-                                                    NextAction("mongoose bite", 39.0f) }));
+                                                    NextAction("reach melee", 38.0f),
+                                                    NextAction("mongoose bite", 6.0f),
+                                                    NextAction("melee", 5.0f) }));
     triggers.push_back(new TriggerNode("hunter's mark", { NextAction("hunter's mark", 29.5f) }));
     triggers.push_back(new TriggerNode("rapid fire", { NextAction("rapid fire", 29.0f) }));
     triggers.push_back(new TriggerNode("aspect of the viper", { NextAction("aspect of the viper", 28.0f) }));

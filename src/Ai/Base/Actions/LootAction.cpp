@@ -404,25 +404,51 @@ bool StoreLootAction::Execute(Event event)
 
         if (!botAI->HasActivePlayerMaster() && AI_VALUE(uint8, "bag space") > 95)
         {
-            uint32 maxStack = proto->GetMaxStackSize();
-            if (maxStack == 1)
-                continue;
-
-            std::vector<Item*> found = parseItems(chat->FormatItem(proto));
-
-            bool hasFreeStack = false;
-
-            for (auto stack : found)
+            // 背包将满：先尝试删除灰色物品腾出空间，再判断是否能拾取
+            if (proto->Quality > ITEM_QUALITY_POOR)
             {
-                if (stack->GetCount() + itemcount < maxStack)
+                // 不是灰色物品，尝试删除灰色腾空间
+                bool destroyed = false;
+                for (uint8 bag = INVENTORY_SLOT_BAG_0; bag <= INVENTORY_SLOT_BAG_END; ++bag)
                 {
-                    hasFreeStack = true;
-                    break;
+                    for (uint8 slot = 0; slot < MAX_BAG_SIZE; ++slot)
+                    {
+                        Item* bagItem = bot->GetItemByPos(bag, slot);
+                        if (!bagItem) continue;
+                        if (bagItem->GetTemplate()->Class == ITEM_CLASS_QUEST) continue;
+                        if (bagItem->GetTemplate()->Quality == ITEM_QUALITY_POOR)
+                        {
+                            bot->DestroyItem(bag, slot, true);
+                            destroyed = true;
+                            break;
+                        }
+                    }
+                    if (destroyed) break;
                 }
+                // 删除后仍满则跳过
+                if (!destroyed && AI_VALUE(uint8, "bag space") > 98)
+                    continue;
             }
+            else
+            {
+                // 灰色物品且背包已满，跳过（不捡灰色垃圾）
+                uint32 maxStack = proto->GetMaxStackSize();
+                if (maxStack == 1)
+                    continue;
 
-            if (!hasFreeStack)
-                continue;
+                std::vector<Item*> found = parseItems(chat->FormatItem(proto));
+                bool hasFreeStack = false;
+                for (auto stack : found)
+                {
+                    if (stack->GetCount() + itemcount < maxStack)
+                    {
+                        hasFreeStack = true;
+                        break;
+                    }
+                }
+                if (!hasFreeStack)
+                    continue;
+            }
         }
 
         Player* master = botAI->GetMaster();

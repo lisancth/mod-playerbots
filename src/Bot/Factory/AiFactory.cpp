@@ -284,6 +284,9 @@ void AiFactory::AddDefaultCombatStrategies(Player* player, PlayerbotAI* const fa
     if (sPlayerbotAIConfig.autoAvoidAoe && facade->HasRealPlayerMaster())
         engine->addStrategy("avoid aoe", false);
 
+    // 所有 bot 默认加载 flee 策略（血量极低时逃跑、多怪时逃跑）
+    engine->addStrategy("flee", false);
+
     engine->addStrategy("formation", false);
 
     switch (player->getClass())
@@ -625,9 +628,7 @@ void AiFactory::AddDefaultNonCombatStrategies(Player* player, PlayerbotAI* const
             if (sPlayerbotAIConfig.randomBotJoinBG)
                 nonCombatEngine->addStrategy("bg", false);
 
-            // if (!master || GET_PLAYERBOT_AI(master))
-            //     nonCombatEngine->addStrategy("maintenance");
-
+            nonCombatEngine->addStrategy("maintenance", false);
             nonCombatEngine->ChangeStrategy(sPlayerbotAIConfig.randomBotNonCombatStrategies);
         }
         else
@@ -654,14 +655,13 @@ void AiFactory::AddDefaultNonCombatStrategies(Player* player, PlayerbotAI* const
                         //     nonCombatEngine->addStrategy("move random");
                         // }
 
-                        // if (masterBotAI)
-                        //     nonCombatEngine->addStrategy("maintenance");
-
+                        nonCombatEngine->addStrategy("maintenance", false);
                         nonCombatEngine->ChangeStrategy(sPlayerbotAIConfig.randomBotNonCombatStrategies);
                     }
                     else
                     {
                         // nonCombatEngine->addStrategy("pvp", false);
+                        nonCombatEngine->addStrategy("maintenance", false);
                         nonCombatEngine->ChangeStrategy(sPlayerbotAIConfig.nonCombatStrategies);
                     }
                 }

@@ -264,6 +264,14 @@ void PlayerbotAI::UpdateAI(uint32 elapsed, bool minimal)
 
     AllowActivity();
 
+    // 猎人无弹药时强制中断自动射击，防止无弹药也能射击
+    if (bot->IsAlive() && bot->getClass() == CLASS_HUNTER &&
+        bot->GetCurrentSpell(CURRENT_AUTOREPEAT_SPELL) &&
+        bot->GetUInt32Value(PLAYER_AMMO_ID) == 0)
+    {
+        bot->InterruptSpell(CURRENT_AUTOREPEAT_SPELL);
+    }
+
     if (!CanUpdateAI())
         return;
 
@@ -4455,6 +4463,26 @@ bool PlayerbotAI::HasRealPlayerMaster()
 bool PlayerbotAI::HasActivePlayerMaster() { return master && !GET_PLAYERBOT_AI(master); }
 
 bool PlayerbotAI::IsAlt() { return HasRealPlayerMaster() && !sRandomPlayerbotMgr.IsRandomBot(bot); }
+
+bool PlayerbotAI::HasAdvancedGrindPermission()
+{
+    uint32 minLevel = sPlayerbotAIConfig.advancedGrindMinSecLevel;
+
+    // 配置为0：所有人都有权限
+    if (minLevel == 0)
+        return true;
+
+    // 随机bot（服务器自动创建的）始终有权限
+    if (sRandomPlayerbotMgr.IsRandomBot(bot))
+        return true;
+
+    // 检查主人的账号等级
+    Player* owner = master ? master : bot;
+    if (!owner || !owner->GetSession())
+        return false;
+
+    return (uint32)owner->GetSession()->GetSecurity() >= minLevel;
+}
 
 Player* PlayerbotAI::GetGroupLeader()
 {

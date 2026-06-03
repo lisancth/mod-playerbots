@@ -540,6 +540,10 @@ public:
     bool HasRealPlayerMaster();
     // Bot has a master that is activly playing.
     bool HasActivePlayerMaster();
+    // 检查 bot 主人是否有高级挂机功能权限
+    // 权限由 AiPlayerbot.AdvancedGrindMinSecLevel 控制
+    // 0=所有人  1=VIP(SEC_MODERATOR)以上  2=GM以上
+    bool HasAdvancedGrindPermission();
     // Get the group leader or the master of the bot.
     // Checks if the bot is summoned as alt of a player
     bool IsAlt();

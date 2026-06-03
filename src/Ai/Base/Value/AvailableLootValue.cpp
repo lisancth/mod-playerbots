@@ -5,6 +5,9 @@
 
 #include "AvailableLootValue.h"
 
+#include "CellImpl.h"
+#include "GridNotifiers.h"
+#include "GridNotifiersImpl.h"
 #include "LootObjectStack.h"
 #include "Playerbots.h"
 #include "ServerFacade.h"
@@ -25,6 +28,32 @@ LootTargetValue::LootTargetValue(PlayerbotAI* botAI, std::string const name)
 bool CanLootValue::Calculate()
 {
     LootObject loot = AI_VALUE(LootObject, "loot target");
-    return !loot.IsEmpty() && loot.GetWorldObject(bot) && loot.IsLootPossible(bot) &&
-           ServerFacade::instance().IsDistanceLessOrEqualThan(AI_VALUE2(float, "distance", "loot target"), INTERACTION_DISTANCE - 2);
+    if (loot.IsEmpty() || !loot.GetWorldObject(bot) || !loot.IsLootPossible(bot))
+        return false;
+
+    if (!ServerFacade::instance().IsDistanceLessOrEqualThan(AI_VALUE2(float, "distance", "loot target"), INTERACTION_DISTANCE - 2))
+        return false;
+
+    // 箱子/矿/草药：检查周围是否有敌对怪物，而不是用 IsInCombat
+    // 这样即使远处还在战斗，只要箱子附近安全就可以开
+    WorldObject* wo = loot.GetWorldObject(bot);
+    if (wo && wo->GetTypeId() == TYPEID_GAMEOBJECT)
+    {
+        // 以箱子位置为中心，检查 25 码内是否有存活的敌对单位
+        float safeRange = 25.0f;
+        std::list<Unit*> nearbyUnits;
+        Acore::AnyUnfriendlyUnitInObjectRangeCheck u_check(bot, bot, safeRange);
+        Acore::UnitListSearcher<Acore::AnyUnfriendlyUnitInObjectRangeCheck> searcher(bot, nearbyUnits, u_check);
+        Cell::VisitObjects(wo, searcher, safeRange);
+
+        for (Unit* unit : nearbyUnits)
+        {
+            // 只检查箱子 25 码内的存活怪物
+            if (unit && unit->IsAlive() && unit->IsCreature() &&
+                wo->GetDistance(unit) <= safeRange)
+                return false;
+        }
+    }
+
+    return true;
 }

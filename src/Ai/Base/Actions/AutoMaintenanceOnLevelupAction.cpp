@@ -34,7 +34,7 @@ void AutoMaintenanceOnLevelupAction::AutoTeleportForLevel()
 
 void AutoMaintenanceOnLevelupAction::AutoPickTalents()
 {
-    if (!sPlayerbotAIConfig.autoPickTalents || !sRandomPlayerbotMgr.IsRandomBot(bot))
+    if (!sPlayerbotAIConfig.autoPickTalents || !botAI->HasAdvancedGrindPermission())
         return;
 
     if (bot->GetFreeTalentPoints() <= 0)
@@ -66,10 +66,11 @@ void AutoMaintenanceOnLevelupAction::AutoLearnSpell()
 void AutoMaintenanceOnLevelupAction::LearnSpells(std::ostringstream* out)
 {
     BroadcastHelper::BroadcastLevelup(botAI, bot);
-    if (sPlayerbotAIConfig.autoLearnTrainerSpells && sRandomPlayerbotMgr.IsRandomBot(bot))
+    // 自动学技能：需要配置开启 + 有高级挂机权限（VIP/GM）
+    if (sPlayerbotAIConfig.autoLearnTrainerSpells && botAI->HasAdvancedGrindPermission())
         LearnTrainerSpells(out);
 
-    if (sPlayerbotAIConfig.autoLearnQuestSpells && sRandomPlayerbotMgr.IsRandomBot(bot))
+    if (sPlayerbotAIConfig.autoLearnQuestSpells && botAI->HasAdvancedGrindPermission())
         LearnQuestSpells(out);
 }
 

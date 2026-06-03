@@ -20,6 +20,9 @@ public:
         creators["abolish poison"] = &abolish_poison;
         creators["abolish poison on party"] = &abolish_poison_on_party;
         creators["prowl"] = &prowl;
+        creators["regrowth"] = &regrowth;
+        creators["healing touch"] = &healing_touch;
+        creators["rejuvenation"] = &rejuvenation;
     }
 
 private:
@@ -86,6 +89,31 @@ private:
                               /*A*/ {},
                               /*C*/ {});
     }
+
+    // 自我治疗：先切人形，施法后自动回猫形
+    static ActionNode* regrowth([[maybe_unused]] PlayerbotAI* botAI)
+    {
+        return new ActionNode("regrowth",
+                              /*P*/ { NextAction("caster form") },
+                              /*A*/ { NextAction("healing touch") },
+                              /*C*/ { NextAction("cat form") });
+    }
+
+    static ActionNode* healing_touch([[maybe_unused]] PlayerbotAI* botAI)
+    {
+        return new ActionNode("healing touch",
+                              /*P*/ { NextAction("caster form") },
+                              /*A*/ {},
+                              /*C*/ { NextAction("cat form") });
+    }
+
+    static ActionNode* rejuvenation([[maybe_unused]] PlayerbotAI* botAI)
+    {
+        return new ActionNode("rejuvenation",
+                              /*P*/ { NextAction("caster form") },
+                              /*A*/ {},
+                              /*C*/ { NextAction("cat form") });
+    }
 };
 
 FeralDruidStrategy::FeralDruidStrategy(PlayerbotAI* botAI) : GenericDruidStrategy(botAI)
@@ -102,6 +130,12 @@ void FeralDruidStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
         "enemy out of melee", { NextAction("reach melee", ACTION_HIGH + 1) }));
     triggers.push_back(new TriggerNode(
         "critical health", { NextAction("survival instincts", ACTION_EMERGENCY + 1) }));
+    // 血量危急：切人形加个 regrowth 再回猫形
+    triggers.push_back(new TriggerNode(
+        "critical health", { NextAction("regrowth", ACTION_CRITICAL_HEAL + 1) }));
+    // 血量低：rejuvenation HoT 续上
+    triggers.push_back(new TriggerNode(
+        "low health", { NextAction("rejuvenation", ACTION_MEDIUM_HEAL + 1) }));
     triggers.push_back(new TriggerNode(
         "omen of clarity", { NextAction("omen of clarity", ACTION_HIGH + 9) }));
     triggers.push_back(new TriggerNode("player has flag",

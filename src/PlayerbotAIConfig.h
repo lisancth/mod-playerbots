@@ -463,6 +463,18 @@ public:
 
     std::vector<uint32> excludedHunterPetFamilies;
 
+    // 背包满自动卖货配置
+    uint32 bagFullSellThreshold;  // 触发卖货的背包使用率%
+    bool sellGrayItems;           // 灰色（强制）
+    bool sellWhiteItems;          // 白色
+    bool sellGreenItems;          // 绿色
+    bool sellBlueItems;           // 蓝色
+
+    // 挂机权限等级控制
+    // 高级挂机功能（自动卖货/升级学技能/猎人买弹药）所需最低账号等级
+    // 0=所有玩家  1=VIP(SEC_MODERATOR)以上  2=GM以上
+    uint32 advancedGrindMinSecLevel;
+
 private:
     PlayerbotAIConfig() = default;
     ~PlayerbotAIConfig() = default;

@@ -45,6 +45,7 @@ public:
         creators["target critical health"] = &TriggerContext::TargetCriticalHealth;
 
         creators["critical health"] = &TriggerContext::CriticalHealth;
+        creators["very low health"] = &TriggerContext::VeryLowHealth;
         creators["low health"] = &TriggerContext::LowHealth;
         creators["medium health"] = &TriggerContext::MediumHealth;
         creators["almost full health"] = &TriggerContext::AlmostFullHealth;
@@ -136,6 +137,9 @@ public:
 
         creators["no drink"] = &TriggerContext::no_drink;
         creators["no food"] = &TriggerContext::no_food;
+        creators["bag full sell"] = &TriggerContext::bag_full_sell;
+        creators["multiple attackers low health"] = &TriggerContext::multiple_attackers_low_health;
+        creators["ranged low health flee"] = &TriggerContext::ranged_low_health_flee;
 
         creators["panic"] = &TriggerContext::panic;
         creators["outnumbered"] = &TriggerContext::outnumbered;
@@ -297,6 +301,9 @@ private:
     static Trigger* outnumbered(PlayerbotAI* botAI) { return new OutNumberedTrigger(botAI); }
     static Trigger* no_drink(PlayerbotAI* botAI) { return new NoDrinkTrigger(botAI); }
     static Trigger* no_food(PlayerbotAI* botAI) { return new NoFoodTrigger(botAI); }
+    static Trigger* bag_full_sell(PlayerbotAI* botAI) { return new BagFullSellTrigger(botAI); }
+    static Trigger* multiple_attackers_low_health(PlayerbotAI* botAI) { return new MultipleAttackersLowHealthTrigger(botAI); }
+    static Trigger* ranged_low_health_flee(PlayerbotAI* botAI) { return new RangedLowHealthTrigger(botAI); }
     static Trigger* LightAoe(PlayerbotAI* botAI) { return new LightAoeTrigger(botAI); }
     static Trigger* MediumAoe(PlayerbotAI* botAI) { return new MediumAoeTrigger(botAI); }
     static Trigger* HighAoe(PlayerbotAI* botAI) { return new HighAoeTrigger(botAI); }
@@ -309,6 +316,7 @@ private:
     static Trigger* MediumHealth(PlayerbotAI* botAI) { return new MediumHealthTrigger(botAI); }
     static Trigger* AlmostFullHealth(PlayerbotAI* botAI) { return new AlmostFullHealthTrigger(botAI); }
     static Trigger* CriticalHealth(PlayerbotAI* botAI) { return new CriticalHealthTrigger(botAI); }
+    static Trigger* VeryLowHealth(PlayerbotAI* botAI) { return new VeryLowHealthTrigger(botAI); }
     static Trigger* TargetCriticalHealth(PlayerbotAI* botAI) { return new TargetCriticalHealthTrigger(botAI); }
     static Trigger* LowMana(PlayerbotAI* botAI) { return new LowManaTrigger(botAI); }
     static Trigger* MediumMana(PlayerbotAI* botAI) { return new MediumManaTrigger(botAI); }

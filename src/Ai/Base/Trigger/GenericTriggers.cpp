@@ -276,6 +276,37 @@ bool NoDrinkTrigger::IsActive()
     return AI_VALUE2(std::vector<Item*>, "inventory items", "conjured water").empty();
 }
 
+bool BagFullSellTrigger::IsActive()
+{
+    if (bot->IsInCombat())
+        return false;
+
+    // 需要高级挂机权限（VIP/GM）
+    if (!botAI->HasAdvancedGrindPermission())
+        return false;
+
+    // 背包使用率达到阈值就触发，TravelToVendorAction 负责寻路
+    return AI_VALUE(uint8, "bag space") >= sPlayerbotAIConfig.bagFullSellThreshold;
+}
+
+bool MultipleAttackersLowHealthTrigger::IsActive()
+{
+    // 攻击者 >2 且血量 <50%：逃跑恢复
+    if (AI_VALUE(uint8, "my attacker count") <= 2)
+        return false;
+
+    return AI_VALUE2(uint8, "health", "self target") < 50;
+}
+
+bool RangedLowHealthTrigger::IsActive()
+{
+    // 远程职业血量 <40%：转身逃跑
+    if (!PlayerbotAI::IsRangedDps(bot))
+        return false;
+
+    return AI_VALUE2(uint8, "health", "self target") < 40;
+}
+
 bool TargetInSightTrigger::IsActive() { return AI_VALUE(Unit*, "grind target"); }
 
 bool DebuffTrigger::IsActive()

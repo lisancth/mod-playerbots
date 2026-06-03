@@ -707,6 +707,16 @@ bool PlayerbotAIConfig::Initialize()
     excludedHunterPetFamilies.clear();
     LoadList<std::vector<uint32>>(sConfigMgr->GetOption<std::string>("AiPlayerbot.ExcludedHunterPetFamilies", ""), excludedHunterPetFamilies);
 
+    // 背包满自动卖货配置
+    bagFullSellThreshold = sConfigMgr->GetOption<uint32>("AiPlayerbot.BagFullSellThreshold", 90);
+    sellGrayItems        = sConfigMgr->GetOption<bool>("AiPlayerbot.SellGrayItems", true);
+    sellWhiteItems       = sConfigMgr->GetOption<bool>("AiPlayerbot.SellWhiteItems", true);
+    sellGreenItems       = sConfigMgr->GetOption<bool>("AiPlayerbot.SellGreenItems", false);
+    sellBlueItems        = sConfigMgr->GetOption<bool>("AiPlayerbot.SellBlueItems", false);
+
+    // 挂机权限等级
+    advancedGrindMinSecLevel = sConfigMgr->GetOption<uint32>("AiPlayerbot.AdvancedGrindMinSecLevel", 0);
+
     LOG_INFO("server.loading", "---------------------------------------");
     LOG_INFO("server.loading", "       mod-playerbots initialized      ");
     LOG_INFO("server.loading", "---------------------------------------");

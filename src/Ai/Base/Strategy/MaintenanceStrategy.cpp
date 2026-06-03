@@ -7,7 +7,11 @@
 
 #include "Playerbots.h"
 
-std::vector<NextAction> MaintenanceStrategy::getDefaultActions() { return {}; }
+std::vector<NextAction> MaintenanceStrategy::getDefaultActions()
+{
+    // 卖货后返回出发点（优先级 10，isUseful() 自己判断是否需要执行）
+    return { NextAction("return from vendor", 10.0f) };
+}
 
 void MaintenanceStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
 {
@@ -72,6 +76,16 @@ void MaintenanceStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
             "random",
             {
                 NextAction("auto share quest", 0.9f)
+            }
+        )
+    );
+    // 背包满时：先寻路到最近商人(优先级9)，到达后卖货(优先级8)
+    triggers.push_back(
+        new TriggerNode(
+            "bag full sell",
+            {
+                NextAction("travel to vendor", 9.0f),
+                NextAction("bag full sell", 8.0f)
             }
         )
     );

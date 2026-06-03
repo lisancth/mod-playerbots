@@ -20,6 +20,8 @@ void GenericHunterNonCombatStrategy::InitTriggers(std::vector<TriggerNode*>& tri
                                                   NextAction("apply oil", 1.0f) }));
     triggers.push_back(new TriggerNode("low ammo", { NextAction("say::low ammo", ACTION_NORMAL) }));
     triggers.push_back(new TriggerNode("no track", { NextAction("track humanoids", ACTION_NORMAL) }));
+    // WotLK 3.3.5 弹药不消耗，无弹药也能射击，不需要去买
+    // 只尝试装备背包里已有的弹药
     triggers.push_back(new TriggerNode("no ammo", { NextAction("equip upgrades packet action", ACTION_HIGH + 1) }));
 }
 

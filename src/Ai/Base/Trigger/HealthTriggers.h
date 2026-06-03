@@ -65,6 +65,16 @@ public:
     }
 };
 
+// 血量 ≤15% 时触发逃跑并恢复（硬编码 15%，独立于 criticalHealth 配置）
+class VeryLowHealthTrigger : public LowHealthTrigger
+{
+public:
+    VeryLowHealthTrigger(PlayerbotAI* botAI)
+        : LowHealthTrigger(botAI, "very low health", 15, 0)
+    {
+    }
+};
+
 class MediumHealthTrigger : public LowHealthTrigger
 {
 public:

@@ -193,6 +193,16 @@ public:
     bool Execute(Event event) override;
 };
 
+// 直接转身跑（绕过 Flee() 的 delay/group 逻辑，用 FleeManager 计算反方向目标）
+class RunFromTargetAction : public MovementAction
+{
+public:
+    RunFromTargetAction(PlayerbotAI* botAI) : MovementAction(botAI, "run from target") {}
+
+    bool Execute(Event event) override;
+    bool isUseful() override;
+};
+
 class MoveToLootAction : public MovementAction
 {
 public:

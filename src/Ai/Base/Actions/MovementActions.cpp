@@ -162,7 +162,7 @@ bool MovementAction::MoveToLOS(WorldObject* target, bool ranged)
     if (dest.isSet())
         return MoveTo(dest.mapId, dest.x, dest.y, dest.z);
     else
-        botAI->TellError("All paths not in LOS");
+        if (botAI->HasRealPlayerMaster()) botAI->TellError("All paths not in LOS");
 
     return false;
 }
@@ -1154,7 +1154,7 @@ bool MovementAction::Follow(Unit* target, float distance, float angle)
             botAI->TellMasterNoFacing("I live, again!");
         }
         else
-            botAI->TellError("I am stuck while following");
+            if (botAI->HasRealPlayerMaster()) botAI->TellError("I am stuck while following");
 
         bot->CombatStop(true);
         botAI->TellMasterNoFacing("I will there soon.");
@@ -1370,7 +1370,7 @@ bool MovementAction::Flee(Unit* target)
 
     if (!IsMovingAllowed())
     {
-        botAI->TellError("I am stuck while fleeing");
+        if (botAI->HasRealPlayerMaster()) botAI->TellError("I am stuck while fleeing");
         return false;
     }
 
@@ -1523,7 +1523,7 @@ bool MovementAction::Flee(Unit* target)
     float rx, ry, rz;
     if (!manager.CalculateDestination(&rx, &ry, &rz))
     {
-        botAI->TellError("Nowhere to flee");
+        if (botAI->HasRealPlayerMaster()) botAI->TellError("Nowhere to flee");
         return false;
     }
 
@@ -1544,10 +1544,11 @@ void MovementAction::ClearIdleState()
 bool MovementAction::MoveAway(Unit* target, float distance, bool backwards)
 {
     if (!target)
-    {
         return false;
-    }
+
     float init_angle = target->GetAngle(bot);
+
+    // 先尝试正后方 ±90 度共 5 个方向（原有逻辑）
     for (float delta = 0; delta <= M_PI / 2; delta += M_PI / 8)
     {
         float angle = init_angle + delta;
@@ -1558,7 +1559,6 @@ bool MovementAction::MoveAway(Unit* target, float distance, bool backwards)
         if (!bot->GetMap()->CheckCollisionAndGetValidCoords(bot, bot->GetPositionX(), bot->GetPositionY(),
                                                             bot->GetPositionZ(), dx, dy, dz))
         {
-            // disable prediction if position is invalid
             dx = bot->GetPositionX() + cos(angle) * distance;
             dy = bot->GetPositionY() + sin(angle) * distance;
             dz = bot->GetPositionZ();
@@ -1566,13 +1566,11 @@ bool MovementAction::MoveAway(Unit* target, float distance, bool backwards)
         }
         if (MoveTo(target->GetMapId(), dx, dy, dz, false, false, true, exact, MovementPriority::MOVEMENT_COMBAT, false,
                    backwards))
-        {
             return true;
-        }
+
         if (delta == 0)
-        {
             continue;
-        }
+
         exact = true;
         angle = init_angle - delta;
         dx = bot->GetPositionX() + cos(angle) * distance;
@@ -1581,7 +1579,6 @@ bool MovementAction::MoveAway(Unit* target, float distance, bool backwards)
         if (!bot->GetMap()->CheckCollisionAndGetValidCoords(bot, bot->GetPositionX(), bot->GetPositionY(),
                                                             bot->GetPositionZ(), dx, dy, dz))
         {
-            // disable prediction if position is invalid
             dx = bot->GetPositionX() + cos(angle) * distance;
             dy = bot->GetPositionY() + sin(angle) * distance;
             dz = bot->GetPositionZ();
@@ -1589,10 +1586,26 @@ bool MovementAction::MoveAway(Unit* target, float distance, bool backwards)
         }
         if (MoveTo(target->GetMapId(), dx, dy, dz, false, false, true, exact, MovementPriority::MOVEMENT_COMBAT, false,
                    backwards))
-        {
             return true;
-        }
     }
+
+    // 前方被障碍物堵住：继续扩大搜索到全圆 360 度，步进 π/8
+    // 用正向跑步（不后退），尝试侧面和前方方向
+    for (float delta = M_PI / 2 + M_PI / 8; delta < M_PI * 2; delta += M_PI / 8)
+    {
+        float angle = init_angle + delta;
+        float dx = bot->GetPositionX() + cos(angle) * distance;
+        float dy = bot->GetPositionY() + sin(angle) * distance;
+        float dz = bot->GetPositionZ();
+        if (!bot->GetMap()->CheckCollisionAndGetValidCoords(bot, bot->GetPositionX(), bot->GetPositionY(),
+                                                            bot->GetPositionZ(), dx, dy, dz))
+            continue;  // 碰墙跳过
+
+        if (MoveTo(target->GetMapId(), dx, dy, dz, false, false, true, true, MovementPriority::MOVEMENT_COMBAT, false,
+                   false))  // 正跑，不后退
+            return true;
+    }
+
     return false;
 }
 
@@ -1829,7 +1842,7 @@ void MovementAction::DoMovePoint(Unit* unit, float x, float y, float z, bool gen
 
 bool FleeAction::Execute(Event /*event*/)
 {
-    return MoveAway(AI_VALUE(Unit*, "current target"), sPlayerbotAIConfig.fleeDistance, true);
+    return MoveAway(AI_VALUE(Unit*, "current target"), sPlayerbotAIConfig.fleeDistance, false);
 }
 
 bool FleeAction::isUseful()
@@ -2621,6 +2634,33 @@ bool DisperseSetAction::Execute(Event event)
 }
 
 bool RunAwayAction::Execute(Event /*event*/) { return Flee(AI_VALUE(Unit*, "group leader")); }
+
+bool RunFromTargetAction::Execute(Event /*event*/)
+{
+    Unit* target = AI_VALUE(Unit*, "current target");
+    if (!target)
+        return false;
+
+    // 直接用 FleeManager 计算反方向目标坐标，距离用 sightDistance 确保跑得够远
+    float runDist = sPlayerbotAIConfig.sightDistance * 0.6f;  // 约 30 码
+    FleeManager manager(bot, runDist, bot->GetAngle(target) + M_PI);
+
+    float rx, ry, rz;
+    if (!manager.CalculateDestination(&rx, &ry, &rz))
+    {
+        // FleeManager 失败时用 MoveAway 兜底
+        return MoveAway(target, runDist, false);
+    }
+
+    // 取消战斗目标，防止 bot 跑着跑着又转回来打
+    bot->SetTarget();
+    return MoveTo(bot->GetMapId(), rx, ry, rz);
+}
+
+bool RunFromTargetAction::isUseful()
+{
+    return !bot->GetCurrentSpell(CURRENT_CHANNELED_SPELL) && AI_VALUE(Unit*, "current target");
+}
 
 bool MoveToLootAction::Execute(Event /*event*/)
 {

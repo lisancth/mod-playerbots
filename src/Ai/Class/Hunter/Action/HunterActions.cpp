@@ -81,6 +81,14 @@ bool CastAutoShotAction::isUseful()
     if (botAI->IsInVehicle() && !botAI->IsInVehicle(false, false, true))
         return false;
 
+    // 没弹药时不能用自动射击，并中断正在进行的自动射击
+    if (AI_VALUE2(uint32, "item count", "ammo") == 0)
+    {
+        if (bot->GetCurrentSpell(CURRENT_AUTOREPEAT_SPELL))
+            bot->InterruptSpell(CURRENT_AUTOREPEAT_SPELL);
+        return false;
+    }
+
     if (AI_VALUE(Unit*, "current target") && bot->GetCurrentSpell(CURRENT_AUTOREPEAT_SPELL) &&
         bot->GetCurrentSpell(CURRENT_AUTOREPEAT_SPELL)->m_targets.GetUnitTargetGUID() ==
             AI_VALUE(Unit*, "current target")->GetGUID())

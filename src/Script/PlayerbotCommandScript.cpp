@@ -17,6 +17,7 @@
 #include "Chat.h"
 #include "GuildTaskMgr.h"
 #include "PerfMonitor.h"
+#include "PlayerbotAIConfig.h"
 #include "PlayerbotMgr.h"
 #include "RandomPlayerbotMgr.h"
 #include "ScriptMgr.h"
@@ -27,6 +28,104 @@ class playerbots_commandscript : public CommandScript
 {
 public:
     playerbots_commandscript() : CommandScript("playerbots_commandscript") {}
+
+    static bool HandleDrinkModeCommand(ChatHandler* handler, char const* args)
+    {
+        if (!args || !*args)
+        {
+            bool foodCheatOn = (sPlayerbotAIConfig.botCheatMask & (uint32)BotCheatMask::food) != 0;
+            handler->PSendSysMessage("Bot drinkmode: %s (food cheat is %s)",
+                foodCheatOn ? "auto (no items needed)" : "real items required",
+                foodCheatOn ? "ON" : "OFF");
+            handler->PSendSysMessage("Usage: .playerbots drinkmode on|off");
+            return true;
+        }
+
+        if (!strcasecmp(args, "on"))
+        {
+            // "on" = 真实喝水模式：关闭 food cheat，bot 需要背包有食物/水
+            sPlayerbotAIConfig.botCheatMask &= ~(uint32)BotCheatMask::food;
+            handler->PSendSysMessage("[DrinkMode] Real items mode ON: bots now require food/water in bags.");
+            LOG_INFO("playerbots", "GM {} set bot drinkmode to real-items (food cheat OFF)",
+                handler->GetSession() ? handler->GetSession()->GetPlayerName() : "Console");
+        }
+        else if (!strcasecmp(args, "off"))
+        {
+            // "off" = 自动模式：开启 food cheat，bot 无需物品自动回血回蓝
+            sPlayerbotAIConfig.botCheatMask |= (uint32)BotCheatMask::food;
+            handler->PSendSysMessage("[DrinkMode] Auto mode ON: bots regenerate without needing food/water.");
+            LOG_INFO("playerbots", "GM {} set bot drinkmode to auto (food cheat ON)",
+                handler->GetSession() ? handler->GetSession()->GetPlayerName() : "Console");
+        }
+        else
+        {
+            handler->PSendSysMessage("Usage: .playerbots drinkmode on|off");
+            handler->PSendSysMessage("  on  = real items required (disable food cheat)");
+            handler->PSendSysMessage("  off = auto regenerate (enable food cheat, default)");
+            return false;
+        }
+
+        return true;
+    }
+
+    // .playerbots sellmode [gray|white|green|blue|status]
+    // gray   = 只卖灰色（最保守）
+    // white  = 卖灰+白
+    // green  = 卖灰+白+绿
+    // blue   = 卖灰+白+绿+蓝
+    // status = 查看当前设置
+    static bool HandleSellModeCommand(ChatHandler* handler, char const* args)
+    {
+        if (!args || !*args || !strcasecmp(args, "status"))
+        {
+            handler->PSendSysMessage("[SellMode] Bag threshold: %u%%  Sell: gray=%s white=%s green=%s blue=%s",
+                sPlayerbotAIConfig.bagFullSellThreshold,
+                sPlayerbotAIConfig.sellGrayItems  ? "ON" : "OFF",
+                sPlayerbotAIConfig.sellWhiteItems ? "ON" : "OFF",
+                sPlayerbotAIConfig.sellGreenItems ? "ON" : "OFF",
+                sPlayerbotAIConfig.sellBlueItems  ? "ON" : "OFF");
+            handler->PSendSysMessage("Usage: .playerbots sellmode gray|white|green|blue|status");
+            return true;
+        }
+
+        // 灰色始终开启，按参数叠加
+        sPlayerbotAIConfig.sellGrayItems  = true;
+        sPlayerbotAIConfig.sellWhiteItems = false;
+        sPlayerbotAIConfig.sellGreenItems = false;
+        sPlayerbotAIConfig.sellBlueItems  = false;
+
+        if (!strcasecmp(args, "gray"))
+        {
+            handler->PSendSysMessage("[SellMode] Selling: gray only.");
+        }
+        else if (!strcasecmp(args, "white"))
+        {
+            sPlayerbotAIConfig.sellWhiteItems = true;
+            handler->PSendSysMessage("[SellMode] Selling: gray + white.");
+        }
+        else if (!strcasecmp(args, "green"))
+        {
+            sPlayerbotAIConfig.sellWhiteItems = true;
+            sPlayerbotAIConfig.sellGreenItems = true;
+            handler->PSendSysMessage("[SellMode] Selling: gray + white + green.");
+        }
+        else if (!strcasecmp(args, "blue"))
+        {
+            sPlayerbotAIConfig.sellWhiteItems = true;
+            sPlayerbotAIConfig.sellGreenItems = true;
+            sPlayerbotAIConfig.sellBlueItems  = true;
+            handler->PSendSysMessage("[SellMode] Selling: gray + white + green + blue.");
+        }
+        else
+        {
+            handler->PSendSysMessage("Usage: .playerbots sellmode gray|white|green|blue|status");
+            return false;
+        }
+
+        LOG_INFO("playerbots", "GM {} changed bot sellmode to: {}",
+            handler->GetSession() ? handler->GetSession()->GetPlayerName() : "Console", args);
+        return true;
+    }
 
     ChatCommandTable GetCommands() const override
     {
@@ -46,6 +145,8 @@ public:
             {"gtask", HandleGuildTaskCommand, SEC_GAMEMASTER, Console::Yes},
             {"pmon", HandlePerfMonCommand, SEC_GAMEMASTER, Console::Yes},
             {"rndbot", HandleRandomPlayerbotCommand, SEC_GAMEMASTER, Console::Yes},
+            {"drinkmode", HandleDrinkModeCommand, SEC_GAMEMASTER, Console::Yes},
+            {"sellmode", HandleSellModeCommand, SEC_GAMEMASTER, Console::Yes},
             {"debug", playerbotsDebugCommandTable},
             {"account", playerbotsAccountCommandTable},
         };
@@ -207,6 +308,7 @@ public:
             return false;
         }
     }
+
 };
 
 void AddPlayerbotsCommandscripts() { new playerbots_commandscript(); }

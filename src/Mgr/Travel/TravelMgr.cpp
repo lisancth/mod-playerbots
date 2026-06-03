@@ -410,12 +410,18 @@ uint32 WorldPosition::getInstanceId()
 
 Map* WorldPosition::getMap()
 {
-    return sMapMgr->FindMap(GetMapId(), getMapEntry()->Instanceable() ? getInstanceId() : 0);
+    MapEntry const* entry = getMapEntry();
+    if (!entry)
+        return nullptr;
+    return sMapMgr->FindMap(GetMapId(), entry->Instanceable() ? getInstanceId() : 0);
 }
 
 float WorldPosition::getHeight()  // remove const - whipowill
 {
-    return getMap()->GetHeight(GetPositionX(), GetPositionY(), GetPositionZ());
+    Map* map = getMap();
+    if (!map)
+        return GetPositionZ();
+    return map->GetHeight(GetPositionX(), GetPositionY(), GetPositionZ());
 }
 
 G3D::Vector3 WorldPosition::getVector3() { return G3D::Vector3(GetPositionX(), GetPositionY(), GetPositionZ()); }
